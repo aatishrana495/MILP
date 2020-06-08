@@ -15,6 +15,9 @@
 #include <set>
 #include <map>
 #include <complex>
+#include <QMainWindow>
+
+#include <ui_milp.h>
 
 #define MAX_N 1001
 #define MAX_M 1001
@@ -23,11 +26,23 @@ typedef long long lld;
 typedef unsigned long long llu;
 using namespace std;
 
-class Milp{
+
+
+namespace Ui {
+class Milp;
+}
+
+
+class Milp : public QMainWindow
+{
+  Q_OBJECT
+
 public:
-  Milp();
+  explicit Milp(QWidget *parent = 0);
   ~Milp();
+
 private:
+  Ui::Milp *ui;
   int n,m;
   double A[MAX_M][MAX_N], b[MAX_M], c[MAX_N], v;
   int N[MAX_N], B[MAX_M];
@@ -38,5 +53,6 @@ private:
   pair<vector<double>, double> simplex();
 
 };
+
 
 #endif // MILP_H

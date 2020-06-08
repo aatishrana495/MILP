@@ -1,5 +1,5 @@
 #include "milp/milp.h"
-
+#include <QApplication>
 /*
  The Simplex algorithm aims to solve a linear program - optimising a linear function subject
  to linear constraints. As such it is useful for a very wide range of applications.
@@ -25,13 +25,12 @@
                 O(n + m) average case (common)
 */
 
-Milp::Milp(){
+Milp::Milp(QWidget *parent)
+    : QMainWindow(parent), ui(new Ui::Milp){
+      ui->setupUi(this);
+  }
 
-}
-
-Milp::~Milp(){
-
-}
+Milp::~Milp(){}
 
 /*
  pivot yth variable around xth constraint
