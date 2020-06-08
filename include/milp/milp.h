@@ -52,6 +52,7 @@ private:
   int n,m;
   double A[MAX_M][MAX_N], b[MAX_M], c[MAX_N], v;
   int N[MAX_N], B[MAX_M];
+  pair<vector<double>, double> ret;
 
   void pivot(int x,  int y);
   int iterate_simplex();
@@ -63,6 +64,14 @@ private:
   void reset_line_edits();
   void update_table_inputs();
   void print_constraint_equations();
+
+  void update_optimize_table();
+  void read_optimize_equation();
+  void print_optimize_equation();
+
+  void display_result_coefficients();
+  void print_result_coefficients();
+  void update_result_table();
 
 };
 

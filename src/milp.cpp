@@ -34,6 +34,8 @@ Milp::Milp(QWidget *parent)
       // update
       reset_line_edits();
       update_table_inputs();
+      update_result_table();
+      update_optimize_table();
 
       // connect slots
       connect(ui->update_inputs_btn, SIGNAL(pressed()),this,SLOT(update_inputs()));
@@ -49,7 +51,7 @@ Milp::~Milp(){}
 */
 
 void Milp::pivot(int x, int y){
-  printf("Pivoting variable %d around constraint %d.\n", y, x);
+  // printf("Pivoting variable %d around constraint %d.\n", y, x);
 
   // first rearrange the x-th row
   for (int j=0;j<n;j++)
@@ -100,17 +102,17 @@ void Milp::pivot(int x, int y){
 */
 
 int Milp::iterate_simplex(){
-  printf("--------------------\n");
-  printf("State:\n");
-  printf("Maximise: ");
-  for (int j=0;j<n;j++) printf("%lfx_%d + ", c[j], N[j]);
-  printf("%lf\n", v);
-  printf("Subject to:\n");
-  for (int i=0;i<m;i++)
-  {
-      for (int j=0;j<n;j++) printf("%lfx_%d + ", A[i][j], N[j]);
-      printf("%lf = x_%d\n", b[i], B[i]);
-  }
+  // printf("--------------------\n");
+  // printf("State:\n");
+  // printf("Maximise: ");
+  // for (int j=0;j<n;j++) printf("%lfx_%d + ", c[j], N[j]);
+  // printf("%lf\n", v);
+  // printf("Subject to:\n");
+  // for (int i=0;i<m;i++)
+  // {
+  //     for (int j=0;j<n;j++) printf("%lfx_%d + ", A[i][j], N[j]);
+  //     printf("%lf = x_%d\n", b[i], B[i]);
+  // }
 
   // getchar(); // uncomment this for debugging purposes!
 
@@ -305,12 +307,17 @@ void Milp::update_inputs(){
   n = atoi(ui->variable_input->text().toStdString().c_str());
   m = atoi(ui->constraints_input->text().toStdString().c_str());
   update_table_inputs();
+  update_optimize_table();
+  update_result_table();
 }
 
 void Milp::reset_inputs(){
   n = m = 0;
   reset_line_edits();
+  update_result_table();
   update_table_inputs();
+  update_optimize_table();
+
 }
 
 void Milp::reset_line_edits(){
@@ -324,9 +331,16 @@ void Milp::update_table_inputs(){
   ui->table_input->setShowGrid(true);
   ui->table_input->verticalHeader()->setVisible(false);
   ui->table_input->setRowCount(m+1);
-  ui->table_input->setColumnCount(n+1);
+  ui->table_input->setColumnCount(n+2);
+  for(int i=0;i<n;i++){
+    string str = "var" + to_string(i+1);
+    QString s = QString::fromUtf8(str.c_str());
+    ui->table_input->setItem(0, i, new QTableWidgetItem(s));
+  }
+  ui->table_input->setItem(0, n, new QTableWidgetItem("constant"));
+  ui->table_input->setItem(0, n+1, new QTableWidgetItem("equate"));
   for(int i=1;i<m+1;i++){
-    for(int j=0;j<n+1;j++){
+    for(int j=0;j<n+2;j++){
         ui->table_input->setItem(i, j, new QTableWidgetItem(""));
     }
   }
@@ -334,25 +348,147 @@ void Milp::update_table_inputs(){
 
 void Milp::read_equations(){
   for(int i=1;i<m+1;i++){
-    for(int j=0;j<n+1;j++){
-        if(j!=n){
+    for(int j=0;j<n+2;j++){
+        if(j==n+1){
           // assuming that they will be greater than 0
+          A[i-1][j] = (double)atoi(ui->table_input->item(i,j)->text().toStdString().c_str());
+          if(A[i-1][j] >= 0){
+            b[i-1] -= A[i-1][j];
+          }else{
+            b[i-1] += A[i-1][j];
+          }
+        }else if(j==n){
+          b[i-1] = (double)atoi(ui->table_input->item(i,j)->text().toStdString().c_str());
         }else{
-           if(ui->table_input->itemAt(i,j)!=NULL){
-             // ui->table_input->setItem(i, j, new QTableWidgetItem("0"));
-             // A[i][j] = (double)atoi(ui->table_input->itemAt(i,j)->text().toStdString().c_str());
-             // cout<< i << j;
+           if(ui->table_input->item(i,j)!=NULL){
+             A[i-1][j] = (double)atoi(ui->table_input->item(i,j)->text().toStdString().c_str());
+             //cout << A[i-1][j] << endl;
+           }else{
+             A[i-1][j] = 0;
            }
         }
     }
   }
-  print_constraint_equations();
+  // print_constraint_equations();
+  read_optimize_equation();
 }
 
 void Milp::print_constraint_equations(){
-  // cout << " hiii " << endl;
+  for(int i=0;i<m;i++){
+    for(int j=0;j<n;j++){
+        cout << A[i][j] << " ";
+    }
+    cout << b[i] << endl;
+  }
+}
+
+void Milp::update_optimize_table(){
+  ui->table_optimize->setShowGrid(true);
+  ui->table_optimize->verticalHeader()->setVisible(false);
+  ui->table_optimize->setRowCount(2);
+  ui->table_optimize->setColumnCount(n+1);
+  for(int i=0;i<n;i++){
+    string str = "var" + to_string(i+1);
+    QString s = QString::fromUtf8(str.c_str());
+    ui->table_optimize->setItem(0, i, new QTableWidgetItem(s));
+  }
+  ui->table_optimize->setItem(0, n, new QTableWidgetItem("constant"));
+  for(int i=0;i<n+1;i++){
+    ui->table_optimize->setItem(1, i, new QTableWidgetItem(""));
+  }
+}
+
+void Milp::read_optimize_equation(){
+  for(int i=0;i<n+1;i++){
+    if(i==n){
+        v = (double)atoi(ui->table_optimize->item(1,i)->text().toStdString().c_str());
+    }else{
+      if(ui->table_optimize->item(1,i)!=NULL){
+        c[i] = (double)atoi(ui->table_optimize->item(1,i)->text().toStdString().c_str());
+        //cout << A[i-1][j] << endl;
+      }else{
+        c[i] = 0;
+      }
+    }
+  }
+  // print_optimize_equation();
+}
+
+void Milp::print_optimize_equation(){
+  for(int i=0;i<n;i++){
+    cout << c[i] << " ";
+  }
+  cout << v << endl;
 }
 
 void Milp::solve(){
-  ui->table_input->setItem(0, 0, new QTableWidgetItem("0"));
+  ret = simplex();
+  //print_result_coefficients();
+  display_result_coefficients();
+}
+
+void Milp::print_result_coefficients(){
+  if (isinf(ret.second))
+  {
+      if (ret.first[0] == -1){
+        printf("Objective function unbounded!\n");
+      }
+      else if (ret.first[0] == -2){
+        printf("Linear program infeasible!\n");
+      }
+  }
+  else
+  {
+    printf("Solution: (");
+    for (int i=0;i<n;i++){
+
+      printf("%lf%s", ret.first[i], (i < n + m - 1) ? ", " : ")\n");
+    }
+    printf("Optimal objective value: %lf\n", ret.second);
+  }
+}
+
+void Milp::display_result_coefficients(){
+  if (isinf(ret.second))
+  {
+      if (ret.first[0] == -1){
+        ui->result_label->setText("The result is: Objective function is unbounded");
+      }
+      else if (ret.first[0] == -2){
+        ui->result_label->setText("The result is: Linear program infeasible!");
+      }
+  }
+  else
+  {
+    ui->result_label->setText("The result is: Linear program is feasible and solutions is in the table below");
+    ui->table_result->setShowGrid(true);
+    ui->table_result->verticalHeader()->setVisible(false);
+    ui->table_result->setRowCount(2);
+    ui->table_result->setColumnCount(n+1);
+    for(int i=0;i<n;i++){
+      string str = "var" + to_string(i+1);
+      QString s = QString::fromUtf8(str.c_str());
+      ui->table_result->setItem(0, i, new QTableWidgetItem(s));
+    }
+    ui->table_result->setItem(0, n, new QTableWidgetItem("OOV"));
+    for (int i=0;i<n;i++){
+      string str = to_string(ret.first[i]);
+      QString s = QString::fromUtf8(str.c_str());
+      ui->table_result->setItem(1, i, new QTableWidgetItem(s));
+    }
+    string str = to_string(ret.second);
+    QString s = QString::fromUtf8(str.c_str());
+    ui->table_result->setItem(1, n, new QTableWidgetItem(s));
+    ui->oov_label->setText("The Optimised Objective Value(OOV) is " + s);
+  }
+
+}
+
+void Milp::update_result_table(){
+  ui->result_label->setText("The result is: NA");
+  ui->table_result->setShowGrid(true);
+  ui->table_result->verticalHeader()->setVisible(false);
+  ui->table_result->setRowCount(0);
+  ui->table_result->setColumnCount(0);
+  ui->oov_label->setText("The Optimised Objective Value(OOV) is NA");
 }
