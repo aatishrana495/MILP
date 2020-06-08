@@ -42,10 +42,10 @@ public:
   ~Milp();
 
 private slots:
-  void update_inputs();
-  void reset_inputs();
+  void update_all();
+  void reset_all();
   void solve();
-  void read_equations();
+
 
 private:
   Ui::Milp *ui;
@@ -61,6 +61,8 @@ private:
 
 
   // ui related
+  void read_equations();
+  void reset_inputs();
   void reset_line_edits();
   void update_table_inputs();
   void print_constraint_equations();
@@ -72,6 +74,8 @@ private:
   void display_result_coefficients();
   void print_result_coefficients();
   void update_result_table();
+
+  void update_inputs();
 
 };
 

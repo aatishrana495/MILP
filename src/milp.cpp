@@ -32,15 +32,13 @@ Milp::Milp(QWidget *parent)
       n = m = 0;
 
       // update
-      reset_line_edits();
-      update_table_inputs();
-      update_result_table();
-      update_optimize_table();
+      reset_all();
+      update_all();
 
       // connect slots
-      connect(ui->update_inputs_btn, SIGNAL(pressed()),this,SLOT(update_inputs()));
-      connect(ui->reset_inputs_btn, SIGNAL(pressed()),this,SLOT(reset_inputs()));
-      connect(ui->read_equations_btn, SIGNAL(pressed()),this,SLOT(read_equations()));
+      connect(ui->update_inputs_btn, SIGNAL(pressed()),this,SLOT(update_all()));
+      connect(ui->reset_inputs_btn, SIGNAL(pressed()),this,SLOT(reset_all()));
+      //connect(ui->read_equations_btn, SIGNAL(pressed()),this,SLOT(read_equations()));
       connect(ui->solve_btn, SIGNAL(pressed()),this,SLOT(solve()));
   }
 
@@ -306,18 +304,10 @@ pair<vector<double>, double> Milp::simplex(){
 void Milp::update_inputs(){
   n = atoi(ui->variable_input->text().toStdString().c_str());
   m = atoi(ui->constraints_input->text().toStdString().c_str());
-  update_table_inputs();
-  update_optimize_table();
-  update_result_table();
 }
 
 void Milp::reset_inputs(){
   n = m = 0;
-  reset_line_edits();
-  update_result_table();
-  update_table_inputs();
-  update_optimize_table();
-
 }
 
 void Milp::reset_line_edits(){
@@ -328,21 +318,28 @@ void Milp::reset_line_edits(){
 }
 
 void Milp::update_table_inputs(){
-  ui->table_input->setShowGrid(true);
-  ui->table_input->verticalHeader()->setVisible(false);
-  ui->table_input->setRowCount(m+1);
-  ui->table_input->setColumnCount(n+2);
-  for(int i=0;i<n;i++){
-    string str = "var" + to_string(i+1);
-    QString s = QString::fromUtf8(str.c_str());
-    ui->table_input->setItem(0, i, new QTableWidgetItem(s));
-  }
-  ui->table_input->setItem(0, n, new QTableWidgetItem("constant"));
-  ui->table_input->setItem(0, n+1, new QTableWidgetItem("equate"));
-  for(int i=1;i<m+1;i++){
-    for(int j=0;j<n+2;j++){
-        ui->table_input->setItem(i, j, new QTableWidgetItem(""));
+  if(n != 0 && m != 0){
+    ui->table_input->setShowGrid(true);
+    ui->table_input->verticalHeader()->setVisible(false);
+    ui->table_input->setRowCount(m+1);
+    ui->table_input->setColumnCount(n+2);
+    for(int i=0;i<n;i++){
+      string str = "var" + to_string(i+1);
+      QString s = QString::fromUtf8(str.c_str());
+      ui->table_input->setItem(0, i, new QTableWidgetItem(s));
     }
+    ui->table_input->setItem(0, n, new QTableWidgetItem("constant"));
+    ui->table_input->setItem(0, n+1, new QTableWidgetItem("equate"));
+    for(int i=1;i<m+1;i++){
+      for(int j=0;j<n+2;j++){
+          ui->table_input->setItem(i, j, new QTableWidgetItem(""));
+      }
+    }
+  }else{
+    ui->table_input->setShowGrid(true);
+    ui->table_input->verticalHeader()->setVisible(false);
+    ui->table_input->setRowCount(0);
+    ui->table_input->setColumnCount(0);
   }
 }
 
@@ -383,18 +380,26 @@ void Milp::print_constraint_equations(){
 }
 
 void Milp::update_optimize_table(){
-  ui->table_optimize->setShowGrid(true);
-  ui->table_optimize->verticalHeader()->setVisible(false);
-  ui->table_optimize->setRowCount(2);
-  ui->table_optimize->setColumnCount(n+1);
-  for(int i=0;i<n;i++){
-    string str = "var" + to_string(i+1);
-    QString s = QString::fromUtf8(str.c_str());
-    ui->table_optimize->setItem(0, i, new QTableWidgetItem(s));
+  if(n != 0 && m != 0){
+    ui->table_optimize->setShowGrid(true);
+    ui->table_optimize->verticalHeader()->setVisible(false);
+    ui->table_optimize->setRowCount(2);
+    ui->table_optimize->setColumnCount(n+1);
+    for(int i=0;i<n;i++){
+      string str = "var" + to_string(i+1);
+      QString s = QString::fromUtf8(str.c_str());
+      ui->table_optimize->setItem(0, i, new QTableWidgetItem(s));
+    }
+    ui->table_optimize->setItem(0, n, new QTableWidgetItem("constant"));
+    for(int i=0;i<n+1;i++){
+      ui->table_optimize->setItem(1, i, new QTableWidgetItem(""));
+    }
   }
-  ui->table_optimize->setItem(0, n, new QTableWidgetItem("constant"));
-  for(int i=0;i<n+1;i++){
-    ui->table_optimize->setItem(1, i, new QTableWidgetItem(""));
+  else{
+    ui->table_optimize->setShowGrid(true);
+    ui->table_optimize->verticalHeader()->setVisible(false);
+    ui->table_optimize->setRowCount(0);
+    ui->table_optimize->setColumnCount(0);
   }
 }
 
@@ -422,6 +427,7 @@ void Milp::print_optimize_equation(){
 }
 
 void Milp::solve(){
+  read_equations();
   ret = simplex();
   //print_result_coefficients();
   display_result_coefficients();
@@ -491,4 +497,18 @@ void Milp::update_result_table(){
   ui->table_result->setRowCount(0);
   ui->table_result->setColumnCount(0);
   ui->oov_label->setText("The Optimised Objective Value(OOV) is NA");
+}
+
+
+void Milp::update_all(){
+  update_inputs();
+  update_result_table();
+  update_table_inputs();
+  update_optimize_table();
+}
+
+void Milp::reset_all(){
+  reset_inputs();
+  reset_line_edits();
+  update_all();
 }

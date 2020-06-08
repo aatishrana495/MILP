@@ -116,23 +116,10 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="read_equations_btn">
-    <property name="geometry">
-     <rect>
-      <x>260</x>
-      <y>90</y>
-      <width>131</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Read equations </string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="solve_btn">
     <property name="geometry">
      <rect>
-      <x>410</x>
+      <x>260</x>
       <y>90</y>
       <width>89</width>
       <height>25</height>
