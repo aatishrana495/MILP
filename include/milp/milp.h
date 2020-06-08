@@ -41,6 +41,12 @@ public:
   explicit Milp(QWidget *parent = 0);
   ~Milp();
 
+private slots:
+  void update_inputs();
+  void reset_inputs();
+  void solve();
+  void read_equations();
+
 private:
   Ui::Milp *ui;
   int n,m;
@@ -51,6 +57,12 @@ private:
   int iterate_simplex();
   int initialise_simplex();
   pair<vector<double>, double> simplex();
+
+
+  // ui related
+  void reset_line_edits();
+  void update_table_inputs();
+  void print_constraint_equations();
 
 };
 

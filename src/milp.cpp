@@ -28,6 +28,18 @@
 Milp::Milp(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::Milp){
       ui->setupUi(this);
+      // initialise variables
+      n = m = 0;
+
+      // update
+      reset_line_edits();
+      update_table_inputs();
+
+      // connect slots
+      connect(ui->update_inputs_btn, SIGNAL(pressed()),this,SLOT(update_inputs()));
+      connect(ui->reset_inputs_btn, SIGNAL(pressed()),this,SLOT(reset_inputs()));
+      connect(ui->read_equations_btn, SIGNAL(pressed()),this,SLOT(read_equations()));
+      connect(ui->solve_btn, SIGNAL(pressed()),this,SLOT(solve()));
   }
 
 Milp::~Milp(){}
@@ -286,4 +298,61 @@ pair<vector<double>, double> Milp::simplex(){
   }
 
   return make_pair(ret, v);
+}
+
+
+void Milp::update_inputs(){
+  n = atoi(ui->variable_input->text().toStdString().c_str());
+  m = atoi(ui->constraints_input->text().toStdString().c_str());
+  update_table_inputs();
+}
+
+void Milp::reset_inputs(){
+  n = m = 0;
+  reset_line_edits();
+  update_table_inputs();
+}
+
+void Milp::reset_line_edits(){
+  ui->variable_input->setText("");
+  ui->constraints_input->setText("");
+  ui->variable_input->setPlaceholderText("Enter the no of variables");
+  ui->constraints_input->setPlaceholderText("Enter the no of contraints");
+}
+
+void Milp::update_table_inputs(){
+  ui->table_input->setShowGrid(true);
+  ui->table_input->verticalHeader()->setVisible(false);
+  ui->table_input->setRowCount(m+1);
+  ui->table_input->setColumnCount(n+1);
+  for(int i=1;i<m+1;i++){
+    for(int j=0;j<n+1;j++){
+        ui->table_input->setItem(i, j, new QTableWidgetItem(""));
+    }
+  }
+}
+
+void Milp::read_equations(){
+  for(int i=1;i<m+1;i++){
+    for(int j=0;j<n+1;j++){
+        if(j!=n){
+          // assuming that they will be greater than 0
+        }else{
+           if(ui->table_input->itemAt(i,j)!=NULL){
+             // ui->table_input->setItem(i, j, new QTableWidgetItem("0"));
+             // A[i][j] = (double)atoi(ui->table_input->itemAt(i,j)->text().toStdString().c_str());
+             // cout<< i << j;
+           }
+        }
+    }
+  }
+  print_constraint_equations();
+}
+
+void Milp::print_constraint_equations(){
+  // cout << " hiii " << endl;
+}
+
+void Milp::solve(){
+  ui->table_input->setItem(0, 0, new QTableWidgetItem("0"));
 }
