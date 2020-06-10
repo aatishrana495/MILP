@@ -1,13 +1,10 @@
-#include <milp/milp.h>
-#include <QApplication>
+#include "milp/milp.h"
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    Milp w;
-    w.show();
-    while(w.isVisible()){
-      a.processEvents();
-    }
+    Milp *w;
+    w = new Milp();
+    w->show();
     return a.exec();
 }
